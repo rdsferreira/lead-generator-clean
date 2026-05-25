@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Generator Pro - Buscar Leads</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🚀 Lead Generator Pro</h1>
+            <p>Encontre clientes em potencial de forma inteligente</p>
+        </div>
+
+        <!-- Card de Personalização -->
+        <div class="search-card" style="margin-bottom: 20px;">
+            <h2>✏️ Personalize suas Mensagens</h2>
+            <p style="color: #666; margin-bottom: 20px; font-size: 0.95em;">
+                Preencha uma vez e suas mensagens ficarão prontas para copiar e enviar!
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userNome">👤 Seu Nome</label>
+                    <input 
+                        type="text" 
+                        id="userNome" 
+                        placeholder="Ex: João Silva"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userEmpresa">🏢 Sua Empresa</label>
+                    <input 
+                        type="text" 
+                        id="userEmpresa" 
+                        placeholder="Ex: Marketing Pro"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userServico">💼 Seu Serviço</label>
+                    <input 
+                        type="text" 
+                        id="userServico" 
+                        placeholder="Ex: sistemas de delivery"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userBeneficio">✨ Benefício Principal</label>
+                    <input 
+                        type="text" 
+                        id="userBeneficio" 
+                        placeholder="Ex: aumentar suas vendas em 30%"
+                    >
+                </div>
+            </div>
+            <small style="color: #666; display: block; margin-top: 10px;">
+                💡 Dica: Seja específico! "Sistemas de delivery" é melhor que "tecnologia"
+            </small>
+        </div>
+
+        <!-- Formulário de Busca -->
+        <div class="search-card">
+            <h2>🔍 Buscar Leads</h2>
+            
+            <form id="searchForm">
+                <!-- Campo Cidade -->
+                <div class="form-group">
+                    <label for="city">📍 Cidade *</label>
+                    <input 
+                        type="text" 
+                        id="city" 
+                        name="city" 
+                        placeholder="Ex: São Paulo, SP"
+                        required
+                    >
+                    <small>Digite a cidade e estado</small>
+                </div>
+
+                <!-- Campos Bairro e Raio (lado a lado) -->
+                <div class="form-group">
+                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div style="flex: 2;">
+                            <label for="neighborhood">🏘️ Bairro (Opcional)</label>
+                            <input 
+                                type="text" 
+                                id="neighborhood" 
+                                name="neighborhood" 
+                                placeholder="Ex: Pinheiros, Vila Madalena"
+                            >
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="radius">📏 Raio</label>
+                            <select id="radius" name="radius">
+                                <option value="2000">2 km</option>
+                                <option value="5000" selected>5 km</option>
+                                <option value="10000">10 km</option>
+                            </select>
+                        </div>
+                    </div>
+                    <small>Deixe o bairro vazio para buscar em toda a cidade</small>
+                </div>
+
+                <!-- Campo Tipo de Negócio -->
+                <div class="form-group">
+                    <label for="businessType">💼 Tipo de Negócio *</label>
+                    <input 
+                        type="text" 
+                        id="businessType" 
+                        name="businessType" 
+                        placeholder="Ex: restaurante, academia, pet shop"
+                        required
+                    >
+                    <small>Digite o tipo de estabelecimento que você procura</small>
+                </div>
+
+                <!-- Campo Quantidade -->
+                <div class="form-group">
+                    <label for="quantity">📊 Quantidade de Leads</label>
+                    <div class="quantity-control">
+                        <input 
+                            type="range" 
+                            id="quantity" 
+                            name="quantity" 
+                            min="1" 
+                            max="50" 
+                            value="20"
+                        >
+                        <span class="quantity-display" id="quantityDisplay">20</span>
+                    </div>
+                    <small>Arraste para escolher entre 1 e 50 leads</small>
+                </div>
+
+                <!-- Filtros Opcionais -->
+                <div class="form-group">
+                    <label>⚙️ Filtros (Opcional)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requirePhone" checked>
+                            <span>📞 Precisa ter telefone</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requireEmail">
+                            <span>📧 Precisa ter email</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requireWebsite">
+                            <span>🌐 Precisa ter site</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Rating Mínimo -->
+                <div class="form-group">
+                    <label for="minRating">⭐ Avaliação Mínima</label>
+                    <select id="minRating" name="minRating">
+                        <option value="0">Qualquer avaliação</option>
+                        <option value="3.0">3.0+ ⭐⭐⭐</option>
+                        <option value="3.5">3.5+ ⭐⭐⭐</option>
+                        <option value="4.0" selected>4.0+ ⭐⭐⭐⭐</option>
+                        <option value="4.5">4.5+ ⭐⭐⭐⭐⭐</option>
+                    </select>
+                    <small>Apenas negócios com esta avaliação ou superior</small>
+                </div>
+
+                <!-- Botão de Busca -->
+                <button type="submit" class="btn-search" id="btnSearch">
+                    🚀 BUSCAR LEADS
+                </button>
+
+                <!-- Mensagem de Status -->
+                <div class="status-message" id="statusMessage" style="display: none;">
+                    <span id="statusText"></span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Área de Resultados (aparece depois da busca) -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2>📊 Leads Encontrados</h2>
+            <div id="resultsContainer">
+                <!-- Os resultados vão aparecer aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
+    <script src="google-maps.js"></script>
+    <script src="score-calculator.js"></script>
+    <script src="message-generator.js"></script>
+    <script src="cnpj-service.js"></script>
+    <script src="excel-exporter.js"></script>
+    <script src="busca.js"></script>
+</body>
+</html>

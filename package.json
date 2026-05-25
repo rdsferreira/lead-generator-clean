@@ -1,0 +1,16 @@
+{
+  "name": "lead-generator-pro",
+  "version": "1.0.0",
+  "description": "Lead Generator Pro - MVP com BigQuery CNPJ",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
