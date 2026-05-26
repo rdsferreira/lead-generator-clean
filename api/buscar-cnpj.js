@@ -80,8 +80,13 @@ export default async function handler(req, res) {
       LEFT JOIN \`basedosdados.br_me_cnpj.empresas\` emp
         ON e.cnpj_basico = emp.cnpj_basico
       WHERE 
-        REPLACE(REPLACE(REPLACE(e.telefone_1, '-', ''), ' ', ''), '(', '') = '${telefoneLimpo}'
-        OR REPLACE(REPLACE(REPLACE(e.telefone_2, '-', ''), ' ', ''), '(', '') = '${telefoneLimpo}'
+      const telefoneLimpo = telefone.replace(/\D/g, '');
+      const telefoneSemDDI = telefoneLimpo.startsWith('55') && telefoneLimpo.length > 11
+      ? telefoneLimpo.slice(2)
+      : telefoneLimpo;
+
+    const ddd = telefoneSemDDI.length >= 10 ? telefoneSemDDI.slice(0, 2) : null;
+    const numero = telefoneSemDDI.length >= 10 ? telefoneSemDDI.slice(2) : telefoneSemDDI;
       LIMIT 1
     `;
 
