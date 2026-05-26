@@ -133,8 +133,7 @@ class ExcelExporter {
                 'Fonte CNPJ': cnpj.fonte || 'N/A',
                 'Conversão Estimada': lead.scoreData.conversao + '%',
                 'Google Maps': lead.linkMaps || 'N/A',
-                'Mensagem': messageGenerator.gerarMensagem(lead).replace(/
-/g, ' ')
+                'Mensagem': messageGenerator.gerarMensagem(lead).replace(/\n/g, ' ')
             };
         });
     }
