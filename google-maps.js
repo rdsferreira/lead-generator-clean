@@ -27,18 +27,13 @@ class GoogleMapsService {
         try {
             // Monta a busca (query)
             const query = localizacao;
-            
-            // Adiciona timestamp para evitar cache
-            const timestamp = Date.now();
 
             // Monta o corpo da requisição
             const requestBody = {
                 textQuery: query,
                 maxResultCount: Math.min(quantidade, 20), // Google limita a 20 por vez
                 languageCode: 'pt-BR',
-                regionCode: 'BR',
-                // Cache busting
-                _cache_bust: timestamp
+                regionCode: 'BR'
             };
 
             // Se tem bairro especificado, adiciona restrição de localização
@@ -52,7 +47,7 @@ class GoogleMapsService {
             }
 
             // Faz a requisição para a API do Google
-            const response = await fetch(`${this.baseUrl}?_t=${timestamp}`, {
+            const response = await fetch(this.baseUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
