@@ -36,15 +36,9 @@ class GoogleMapsService {
                 regionCode: 'BR'
             };
 
-            // Se tem bairro especificado, adiciona restrição de localização
-            // Isso vai fazer a busca focar mais na região específica
-            if (bairro) {
-                requestBody.locationBias = {
-                    circle: {
-                        radius: raio // em metros
-                    }
-                };
-            }
+            // Observação: o bairro já vai no texto da busca.
+            // Não usamos locationBias aqui porque a API exige latitude/longitude no center.
+            // Usar apenas radius sem center pode causar erro ou comportamento inconsistente.
 
             // Faz a requisição para a API do Google
             const response = await fetch(this.baseUrl, {
@@ -334,37 +328,44 @@ class GoogleMapsService {
     async enriquecerComCNPJ(leads) {
         console.log('🏢 Buscando dados do CNPJ na Receita Federal...');
         
-        // Enriquece apenas os 5 primeiros (leads top) para economizar rate limit
-        // Em produção, você pode ajustar isso
-        const leadsParaEnriquecer = leads.slice(0, 5);
-        
-        for (const lead of leadsParaEnriquecer) {
-            try {
-                const enriquecido = await cnpjService.enriquecerLead(lead);
-                
-                if (enriquecido.dadosCNPJ) {
-                    lead.dadosCNPJ = enriquecido.dadosCNPJ;
-                    
-                    // Atualiza email se a Receita tiver um melhor
-                    if (enriquecido.dadosCNPJ.email && !lead.email) {
-                        lead.email = enriquecido.dadosCNPJ.email;
+        // Enriquece todos os leads que tiverem telefone.
+        // O CNPJ agora vem direto da nossa API /api/buscar-cnpj, sem depender da ReceitaWS para cada lead.
+        const leadsParaEnriquecer = leads.filter(lead => lead.telefone);
+        const BATCH_SIZE = 5;
+
+        for (let i = 0; i < leadsParaEnriquecer.length; i += BATCH_SIZE) {
+            const batch = leadsParaEnriquecer.slice(i, i + BATCH_SIZE);
+
+            await Promise.all(
+                batch.map(async (lead) => {
+                    try {
+                        const enriquecido = await cnpjService.enriquecerLead(lead);
+
+                        if (enriquecido.dadosCNPJ) {
+                            lead.dadosCNPJ = enriquecido.dadosCNPJ;
+
+                            // Atualiza email se o cadastro do CNPJ tiver e o Google/site não tiver.
+                            if (enriquecido.dadosCNPJ.email && !lead.email) {
+                                lead.email = enriquecido.dadosCNPJ.email;
+                            }
+
+                            // Mantém telefone do Google; só usa o da base se o Google não tiver.
+                            if (enriquecido.dadosCNPJ.telefone && !lead.telefone) {
+                                lead.telefone = enriquecido.dadosCNPJ.telefone;
+                            }
+
+                            console.log(`✅ CNPJ encontrado para ${lead.nome}`);
+                        }
+                    } catch (error) {
+                        console.log(`⚠️ Não foi possível enriquecer ${lead.nome} com CNPJ`);
                     }
-                    
-                    // Atualiza telefone se a Receita tiver um melhor  
-                    if (enriquecido.dadosCNPJ.telefone && !lead.telefone) {
-                        lead.telefone = enriquecido.dadosCNPJ.telefone;
-                    }
-                    
-                    console.log(`✅ CNPJ encontrado para ${lead.nome}`);
-                }
-            } catch (error) {
-                console.log(`⚠️ Não foi possível enriquecer ${lead.nome} com CNPJ`);
-            }
+                })
+            );
         }
-        
+
         const leadsComCNPJ = leads.filter(l => l.dadosCNPJ).length;
         console.log(`🏢 Total com dados do CNPJ: ${leadsComCNPJ}/${leadsParaEnriquecer.length}`);
-        
+
         return leads;
     }
 
