@@ -19,6 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusMessage = document.getElementById('statusMessage');
     const statusText = document.getElementById('statusText');
     
+    // Elementos de resultados
+    const resultsSection = document.getElementById('resultsSection');
+    const leadsList = document.getElementById('leadsList');
+    
+    // Variáveis de estado
+    let currentLeads = [];
+    let currentFilters = null;
+    
     // ============================================
     // ATUALIZA O NÚMERO DE LEADS QUANDO ARRASTA O SLIDER
     // ============================================
