@@ -7,7 +7,7 @@
 // 3) Depois cole a chave abaixo, entre as aspas.
 
 const CONFIG = {
-    GOOGLE_API_KEY: 'COLE_SUA_CHAVE_AQUI',
+    GOOGLE_API_KEY: 'AIzaSyB_vyjrjktpehkfAjAI0cET2C8tlbDcamw',
     MAX_RESULTS: 50,
     TIMEOUT: 10000
 };
