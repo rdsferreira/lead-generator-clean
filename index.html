@@ -1,32 +1,495 @@
-🚀 Lead Generator Pro
-Encontre clientes em potencial de forma inteligente
-✏️ Personalize suas Mensagens
-Preencha uma vez e suas mensagens ficarão prontas para copiar e enviar!
-👤 Seu Nome
-🏢 Sua Empresa
-💼 Seu Serviço
-✨ Benefício Principal
-💡 Dica: Seja específico! "Sistemas de delivery" é melhor que "tecnologia"
-🔍 Buscar Leads
-📍 Cidade * Digite a cidade e estado
-🏘️ Bairro (Opcional)
-📏 Raio
-                                2 km
-                                5 km
-                                10 km
-                            
-Deixe o bairro vazio para buscar em toda a cidade
-💼 Tipo de Negócio * Digite o tipo de estabelecimento que você procura
-📊 Quantidade de Leads
-20
-Arraste para escolher entre 1 e 50 leads
-⚙️ Filtros (Opcional)
-📞 Precisa ter telefone 📧 Precisa ter email 🌐 Precisa ter site
-⭐ Avaliação Mínima
-                        Qualquer avaliação
-                        3.0+ ⭐⭐⭐
-                        3.5+ ⭐⭐⭐
-                        4.0+ ⭐⭐⭐⭐
-                        4.5+ ⭐⭐⭐⭐⭐
-                     Apenas negócios com esta avaliação ou superior
-🚀 BUSCAR LEADS
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Generator Pro - Buscar Leads</title>
+    <style>
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Configuração geral */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+/* Container principal */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Cabeçalho */
+.header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+/* Card de busca */
+.search-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.search-card h2 {
+    color: #667eea;
+    margin-bottom: 30px;
+    font-size: 1.8em;
+}
+
+/* Grupos de formulário */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Inputs de texto */
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Select */
+select {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1em;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Controle de quantidade (slider) */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+input[type="range"] {
+    flex: 1;
+    height: 8px;
+    border-radius: 5px;
+    background: #e0e0e0;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    background: #764ba2;
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+}
+
+.quantity-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #667eea;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Checkboxes */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.checkbox-label:hover {
+    background: #f5f5f5;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    font-size: 1em;
+}
+
+/* Botão de busca */
+.btn-search {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-search:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-search:active {
+    transform: translateY(0);
+}
+
+.btn-search:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Mensagem de status */
+.status-message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.status-message.loading {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffc107;
+}
+
+.status-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.status-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 2px solid #dc3545;
+}
+
+/* Seção de resultados */
+.results-section {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-top: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.results-section h2 {
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 1.8em;
+    }
+    
+    .search-card {
+        padding: 25px;
+    }
+    
+    .quantity-control {
+        flex-direction: column;
+    }
+    
+    .quantity-display {
+        font-size: 2em;
+    }
+}
+
+/* Animação de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-card, .results-section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+</style>
+</head>
+<body>
+    <div class="container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🚀 Lead Generator Pro</h1>
+            <p>Encontre clientes em potencial de forma inteligente</p>
+        </div>
+
+        <!-- Card de Personalização -->
+        <div class="search-card" style="margin-bottom: 20px;">
+            <h2>✏️ Personalize suas Mensagens</h2>
+            <p style="color: #666; margin-bottom: 20px; font-size: 0.95em;">
+                Preencha uma vez e suas mensagens ficarão prontas para copiar e enviar!
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userNome">👤 Seu Nome</label>
+                    <input 
+                        type="text" 
+                        id="userNome" 
+                        placeholder="Ex: João Silva"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userEmpresa">🏢 Sua Empresa</label>
+                    <input 
+                        type="text" 
+                        id="userEmpresa" 
+                        placeholder="Ex: Marketing Pro"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userServico">💼 Seu Serviço</label>
+                    <input 
+                        type="text" 
+                        id="userServico" 
+                        placeholder="Ex: sistemas de delivery"
+                    >
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label for="userBeneficio">✨ Benefício Principal</label>
+                    <input 
+                        type="text" 
+                        id="userBeneficio" 
+                        placeholder="Ex: aumentar suas vendas em 30%"
+                    >
+                </div>
+            </div>
+            <small style="color: #666; display: block; margin-top: 10px;">
+                💡 Dica: Seja específico! "Sistemas de delivery" é melhor que "tecnologia"
+            </small>
+        </div>
+
+        <!-- Formulário de Busca -->
+        <div class="search-card">
+            <h2>🔍 Buscar Leads</h2>
+            
+            <form id="searchForm">
+                <!-- Campo Cidade -->
+                <div class="form-group">
+                    <label for="city">📍 Cidade *</label>
+                    <input 
+                        type="text" 
+                        id="city" 
+                        name="city" 
+                        placeholder="Ex: São Paulo, SP"
+                        required
+                    >
+                    <small>Digite a cidade e estado</small>
+                </div>
+
+                <!-- Campos Bairro e Raio (lado a lado) -->
+                <div class="form-group">
+                    <div style="display: flex; gap: 15px; align-items: flex-end;">
+                        <div style="flex: 2;">
+                            <label for="neighborhood">🏘️ Bairro (Opcional)</label>
+                            <input 
+                                type="text" 
+                                id="neighborhood" 
+                                name="neighborhood" 
+                                placeholder="Ex: Pinheiros, Vila Madalena"
+                            >
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="radius">📏 Raio</label>
+                            <select id="radius" name="radius">
+                                <option value="2000">2 km</option>
+                                <option value="5000" selected>5 km</option>
+                                <option value="10000">10 km</option>
+                            </select>
+                        </div>
+                    </div>
+                    <small>Deixe o bairro vazio para buscar em toda a cidade</small>
+                </div>
+
+                <!-- Campo Tipo de Negócio -->
+                <div class="form-group">
+                    <label for="businessType">💼 Tipo de Negócio *</label>
+                    <input 
+                        type="text" 
+                        id="businessType" 
+                        name="businessType" 
+                        placeholder="Ex: restaurante, academia, pet shop"
+                        required
+                    >
+                    <small>Digite o tipo de estabelecimento que você procura</small>
+                </div>
+
+                <!-- Campo Quantidade -->
+                <div class="form-group">
+                    <label for="quantity">📊 Quantidade de Leads</label>
+                    <div class="quantity-control">
+                        <input 
+                            type="range" 
+                            id="quantity" 
+                            name="quantity" 
+                            min="1" 
+                            max="50" 
+                            value="20"
+                        >
+                        <span class="quantity-display" id="quantityDisplay">20</span>
+                    </div>
+                    <small>Arraste para escolher entre 1 e 50 leads</small>
+                </div>
+
+                <!-- Filtros Opcionais -->
+                <div class="form-group">
+                    <label>⚙️ Filtros (Opcional)</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requirePhone" checked>
+                            <span>📞 Precisa ter telefone</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requireEmail">
+                            <span>📧 Precisa ter email</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="requireWebsite">
+                            <span>🌐 Precisa ter site</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Rating Mínimo -->
+                <div class="form-group">
+                    <label for="minRating">⭐ Avaliação Mínima</label>
+                    <select id="minRating" name="minRating">
+                        <option value="0">Qualquer avaliação</option>
+                        <option value="3.0">3.0+ ⭐⭐⭐</option>
+                        <option value="3.5">3.5+ ⭐⭐⭐</option>
+                        <option value="4.0" selected>4.0+ ⭐⭐⭐⭐</option>
+                        <option value="4.5">4.5+ ⭐⭐⭐⭐⭐</option>
+                    </select>
+                    <small>Apenas negócios com esta avaliação ou superior</small>
+                </div>
+
+                <!-- Botão de Busca -->
+                <button type="submit" class="btn-search" id="btnSearch">
+                    🚀 BUSCAR LEADS
+                </button>
+
+                <!-- Mensagem de Status -->
+                <div class="status-message" id="statusMessage" style="display: none;">
+                    <span id="statusText"></span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Área de Resultados (aparece depois da busca) -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2>📊 Leads Encontrados</h2>
+            <div id="resultsContainer">
+                <!-- Os resultados vão aparecer aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="config.js"></script>
+    <script src="google-maps.js"></script>
+    <script src="score-calculator.js"></script>
+    <script src="message-generator.js"></script>
+    <script src="cnpj-service.js"></script>
+    <script src="excel-exporter.js"></script>
+    <script src="busca.js"></script>
+</body>
+</html>

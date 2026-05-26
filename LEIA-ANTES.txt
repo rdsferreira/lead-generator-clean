@@ -1,0 +1,14 @@
+VERSAO EMERGENCIAL - LAYOUT CORRIGIDO
+
+Esta versao coloca o CSS dentro do index.html para evitar que o Vercel/GitHub deixe a pagina sem estilo.
+
+COMO SUBSTITUIR:
+1. Apague os arquivos antigos do repositorio, exceto se houver algo personalizado que voce queira manter.
+2. Envie todos os arquivos desta pasta para a raiz do repositorio.
+3. Confirme que o arquivo api/buscar-cnpj.js ficou dentro da pasta api.
+4. Abra config.js e cole sua chave nova/restrita do Google em GOOGLE_API_KEY.
+5. Faca commit e aguarde o redeploy do Vercel.
+
+IMPORTANTE:
+- O arquivo index.html ja contem o CSS embutido. O style.css fica junto apenas como backup.
+- Se a pagina ainda abrir sem layout, o Vercel provavelmente esta apontando para outro repositorio, outra branch ou uma pasta errada.
