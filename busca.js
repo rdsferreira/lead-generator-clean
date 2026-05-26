@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Elementos de resultados
     const resultsSection = document.getElementById('resultsSection');
-    const leadsList = document.getElementById('leadsList');
+    const leadsList = document.getElementById('resultsContainer'); // O HTML usa 'resultsContainer' como ID
     
     // Variáveis de estado
     let currentLeads = [];
