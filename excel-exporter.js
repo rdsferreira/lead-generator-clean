@@ -31,16 +31,13 @@ class ExcelExporter {
             
             // Formata as colunas (largura)
             const larguraColunas = [
-                { wch: 8 },   // Score
-                { wch: 12 },  // Classificação
-                { wch: 30 },  // Nome
-                { wch: 25 },  // Endereço
-                { wch: 18 },  // Telefone
-                { wch: 30 },  // Website
-                { wch: 8 },   // Rating
-                { wch: 10 },  // Reviews
-                { wch: 12 },  // Conversão
-                { wch: 50 }   // Mensagem
+                { wch: 6 }, { wch: 8 }, { wch: 14 }, { wch: 30 },
+                { wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 14 },
+                { wch: 12 }, { wch: 28 }, { wch: 24 }, { wch: 18 },
+                { wch: 35 }, { wch: 35 }, { wch: 18 }, { wch: 30 },
+                { wch: 30 }, { wch: 8 }, { wch: 10 }, { wch: 14 },
+                { wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 40 },
+                { wch: 60 }
             ];
             
             worksheet['!cols'] = larguraColunas;
@@ -108,20 +105,36 @@ class ExcelExporter {
     // ============================================
     prepararDados(leads) {
         return leads.map((lead, index) => {
+            const cnpj = lead.dadosCNPJ || {};
+            const decisor = cnpj.socioPrincipal || {};
+
             return {
                 'Nº': index + 1,
                 'Score': lead.scoreData.score,
                 'Classificação': lead.scoreData.nome,
-                'Nome': lead.nome,
-                'Endereço': lead.endereco,
-                'Telefone': lead.telefone || 'N/A',
+                'Nome Google': lead.nome,
+                'Razão Social': cnpj.razaoSocial || 'N/A',
+                'Nome Fantasia': cnpj.nomeFantasia || 'N/A',
+                'CNPJ': cnpj.cnpjFormatado || cnpj.cnpj || 'N/A',
+                'Situação CNPJ': cnpj.situacao || 'N/A',
+                'CNPJ Ativo': cnpj.situacaoAtiva ? 'Sim' : (cnpj.situacao ? 'Não' : 'N/A'),
+                'Decisor': decisor.nome || 'N/A',
+                'Qualificação Decisor': decisor.qualificacao || 'N/A',
+                'Capital Social': cnpj.capitalSocialFormatado || 'N/A',
+                'Endereço Google': lead.endereco,
+                'Endereço CNPJ': cnpj.enderecoCompleto || (cnpj.endereco && cnpj.endereco.completo) || 'N/A',
+                'Telefone': lead.telefone || cnpj.telefone || 'N/A',
+                'Email': lead.email || cnpj.email || 'N/A',
                 'Website': lead.site || 'N/A',
                 'Rating': lead.avaliacao.toFixed(1),
                 'Reviews': lead.numeroAvaliacoes,
-                'Status': lead.estaAberto ? 'Aberto' : 'Fechado',
+                'Status Google': lead.estaAberto ? 'Aberto' : 'Fechado',
+                'CNAE': cnpj.cnae || 'N/A',
+                'Fonte CNPJ': cnpj.fonte || 'N/A',
                 'Conversão Estimada': lead.scoreData.conversao + '%',
                 'Google Maps': lead.linkMaps || 'N/A',
-                'Mensagem': messageGenerator.gerarMensagem(lead).replace(/\n/g, ' ')
+                'Mensagem': messageGenerator.gerarMensagem(lead).replace(/
+/g, ' ')
             };
         });
     }
@@ -172,9 +185,13 @@ class ExcelExporter {
             const dadosLeads = this.prepararDados(leads);
             const worksheetLeads = XLSX.utils.json_to_sheet(dadosLeads);
             worksheetLeads['!cols'] = [
-                { wch: 6 }, { wch: 8 }, { wch: 12 }, { wch: 30 }, 
-                { wch: 25 }, { wch: 18 }, { wch: 30 }, { wch: 8 },
-                { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 40 }, { wch: 50 }
+                { wch: 6 }, { wch: 8 }, { wch: 14 }, { wch: 30 },
+                { wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 14 },
+                { wch: 12 }, { wch: 28 }, { wch: 24 }, { wch: 18 },
+                { wch: 35 }, { wch: 35 }, { wch: 18 }, { wch: 30 },
+                { wch: 30 }, { wch: 8 }, { wch: 10 }, { wch: 14 },
+                { wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 40 },
+                { wch: 60 }
             ];
             XLSX.utils.book_append_sheet(workbook, worksheetLeads, 'Leads');
             
