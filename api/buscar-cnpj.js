@@ -87,7 +87,7 @@ export default async function handler(req, res) {
         OR REGEXP_REPLACE(COALESCE(CAST(e.telefone_2 AS STRING), ''), r'\\D', '') IN (@numero, @numeroSem9)
       ORDER BY
         CASE
-          WHEN String(e.situacao_cadastral) = '2' THEN 1
+          WHEN CAST(e.situacao_cadastral AS STRING) = '2' THEN 1
           WHEN UPPER(CAST(e.situacao_cadastral AS STRING)) = 'ATIVA' THEN 1
           ELSE 2
         END
