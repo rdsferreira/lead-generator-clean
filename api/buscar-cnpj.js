@@ -1,125 +1,164 @@
 // ============================================
 // API SERVERLESS - BUSCAR CNPJ POR TELEFONE
-// Arquivo correto: /api/buscar-cnpj.js
+// Versao v5 - otimizada para evitar timeout no Vercel
+// Caminho correto: /api/buscar-cnpj.js
 // ============================================
 
 import { BigQuery } from '@google-cloud/bigquery';
 
-const bigquery = new BigQuery({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-  credentials: {
-    client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-});
+function criarBigQueryClient() {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error('Variaveis de ambiente ausentes: GOOGLE_CLOUD_PROJECT_ID, GOOGLE_CLOUD_CLIENT_EMAIL e GOOGLE_CLOUD_PRIVATE_KEY precisam estar configuradas no Vercel.');
+  }
+
+  return new BigQuery({
+    projectId,
+    credentials: {
+      client_email: clientEmail,
+      private_key: privateKey
+    }
+  });
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Metodo nao permitido' });
   }
 
   try {
-    const { telefone } = req.query;
+    const { telefone, uf } = req.query;
 
     if (!telefone) {
       return res.status(400).json({
         error: 'Telefone e obrigatorio',
-        exemplo: '/api/buscar-cnpj?telefone=1132143347',
+        exemplo: '/api/buscar-cnpj?telefone=1132143347'
       });
     }
 
+    const bigquery = criarBigQueryClient();
     const normalizado = normalizarTelefone(telefone);
 
-    console.log('🔍 Buscando CNPJ por telefone:', {
-      recebido: telefone,
-      telefoneCompleto: normalizado.telefoneCompleto,
-      numero: normalizado.numero,
-      telefoneSem9: normalizado.telefoneSem9,
-      numeroSem9: normalizado.numeroSem9,
+    if (!normalizado.ddd || normalizado.numeros.length === 0) {
+      return res.status(400).json({
+        error: 'Telefone invalido',
+        telefoneRecebido: telefone
+      });
+    }
+
+    const ufNormalizada = uf ? String(uf).trim().toUpperCase().slice(0, 2) : null;
+
+    console.log('Buscando CNPJ por telefone:', {
+      telefoneOriginal: telefone,
+      ddd: normalizado.ddd,
+      numeros: normalizado.numeros,
+      uf: ufNormalizada || 'sem UF'
     });
 
-    const query = `
+    const queryEstabelecimento = `
       SELECT
-        e.cnpj,
         e.cnpj_basico,
-        emp.razao_social,
+        e.cnpj_ordem,
+        e.cnpj_dv,
+        CONCAT(e.cnpj_basico, e.cnpj_ordem, e.cnpj_dv) AS cnpj,
         e.nome_fantasia,
-        e.situacao_cadastral,
+        CAST(e.situacao_cadastral AS STRING) AS situacao_cadastral,
         e.data_inicio_atividade,
-        emp.capital_social,
         e.tipo_logradouro,
         e.logradouro,
         e.numero,
         e.complemento,
         e.bairro,
-        mun.nome AS municipio,
-        e.sigla_uf AS uf,
+        e.id_municipio,
+        e.sigla_uf,
         e.cep,
-        e.ddd_1,
-        e.telefone_1,
-        e.ddd_2,
-        e.telefone_2,
+        CAST(e.ddd_1 AS STRING) AS ddd_1,
+        CAST(e.telefone_1 AS STRING) AS telefone_1,
+        CAST(e.ddd_2 AS STRING) AS ddd_2,
+        CAST(e.telefone_2 AS STRING) AS telefone_2,
         e.email,
         e.cnae_fiscal_principal
       FROM \`basedosdados.br_me_cnpj.estabelecimentos\` e
-      LEFT JOIN \`basedosdados.br_me_cnpj.empresas\` emp
-        ON e.cnpj_basico = emp.cnpj_basico
-      LEFT JOIN \`basedosdados.br_bd_diretorios_brasil.municipio\` mun
-        ON e.id_municipio = mun.id_municipio
       WHERE
-        CONCAT(
-          REGEXP_REPLACE(COALESCE(CAST(e.ddd_1 AS STRING), ''), r'\\D', ''),
-          REGEXP_REPLACE(COALESCE(CAST(e.telefone_1 AS STRING), ''), r'\\D', '')
-        ) IN (@telefoneCompleto, @telefoneSem9)
-        OR CONCAT(
-          REGEXP_REPLACE(COALESCE(CAST(e.ddd_2 AS STRING), ''), r'\\D', ''),
-          REGEXP_REPLACE(COALESCE(CAST(e.telefone_2 AS STRING), ''), r'\\D', '')
-        ) IN (@telefoneCompleto, @telefoneSem9)
-        OR REGEXP_REPLACE(COALESCE(CAST(e.telefone_1 AS STRING), ''), r'\\D', '') IN (@numero, @numeroSem9)
-        OR REGEXP_REPLACE(COALESCE(CAST(e.telefone_2 AS STRING), ''), r'\\D', '') IN (@numero, @numeroSem9)
+        (@uf IS NULL OR e.sigla_uf = @uf)
+        AND (
+          (
+            CAST(e.ddd_1 AS STRING) = @ddd
+            AND CAST(e.telefone_1 AS STRING) IN UNNEST(@numeros)
+          )
+          OR
+          (
+            CAST(e.ddd_2 AS STRING) = @ddd
+            AND CAST(e.telefone_2 AS STRING) IN UNNEST(@numeros)
+          )
+        )
       ORDER BY
         CASE
-          WHEN CAST(e.situacao_cadastral AS STRING) = '2' THEN 1
-          WHEN UPPER(CAST(e.situacao_cadastral AS STRING)) = 'ATIVA' THEN 1
-          ELSE 2
-        END
+          WHEN CAST(e.situacao_cadastral AS STRING) IN ('2', '02', 'ATIVA') THEN 0
+          ELSE 1
+        END,
+        e.data_inicio_atividade DESC
       LIMIT 1
     `;
 
-    const [rows] = await bigquery.query({
-      query,
+    const [estabelecimentos] = await bigquery.query({
+      query: queryEstabelecimento,
       location: 'US',
       params: {
-        telefoneCompleto: normalizado.telefoneCompleto,
-        telefoneSem9: normalizado.telefoneSem9 || normalizado.telefoneCompleto,
-        numero: normalizado.numero,
-        numeroSem9: normalizado.numeroSem9 || normalizado.numero,
+        ddd: normalizado.ddd,
+        numeros: normalizado.numeros,
+        uf: ufNormalizada
       },
+      types: {
+        ddd: 'STRING',
+        numeros: ['STRING'],
+        uf: 'STRING'
+      }
     });
 
-    if (!rows || rows.length === 0) {
-      console.log('⚠️ CNPJ nao encontrado para este telefone');
+    if (!estabelecimentos || estabelecimentos.length === 0) {
       return res.status(404).json({
         found: false,
         message: 'CNPJ nao encontrado para este telefone',
         telefone,
-        telefoneNormalizado: normalizado.telefoneCompleto,
+        tentativa: {
+          ddd: normalizado.ddd,
+          numeros: normalizado.numeros,
+          uf: ufNormalizada
+        }
       });
     }
 
-    const empresa = rows[0];
-    const cnpjRaw = limparNumeros(empresa.cnpj);
-    const cnpjBasico = empresa.cnpj_basico || cnpjRaw.substring(0, 8);
+    const est = estabelecimentos[0];
 
-    console.log('✅ CNPJ encontrado:', cnpjRaw);
+    const queryEmpresa = `
+      SELECT
+        razao_social,
+        capital_social,
+        natureza_juridica,
+        qualificacao_responsavel
+      FROM \`basedosdados.br_me_cnpj.empresas\`
+      WHERE cnpj_basico = @cnpjBasico
+      LIMIT 1
+    `;
+
+    const [empresas] = await bigquery.query({
+      query: queryEmpresa,
+      location: 'US',
+      params: { cnpjBasico: est.cnpj_basico },
+      types: { cnpjBasico: 'STRING' }
+    });
+
+    const emp = empresas?.[0] || {};
 
     const querySocios = `
       SELECT
@@ -131,150 +170,113 @@ export default async function handler(req, res) {
       WHERE cnpj_basico = @cnpjBasico
       ORDER BY
         CASE
-          WHEN UPPER(COALESCE(CAST(qualificacao_socio AS STRING), '')) LIKE '%ADMINISTRADOR%' THEN 1
-          ELSE 2
+          WHEN LOWER(CAST(qualificacao_socio AS STRING)) LIKE '%administrador%' THEN 0
+          WHEN LOWER(CAST(qualificacao_socio AS STRING)) LIKE '%socio-administrador%' THEN 0
+          ELSE 1
         END
-      LIMIT 10
+      LIMIT 5
     `;
 
-    let socios = [];
-    try {
-      const [sociosRows] = await bigquery.query({
-        query: querySocios,
-        location: 'US',
-        params: { cnpjBasico },
-      });
-      socios = sociosRows || [];
-    } catch (socioError) {
-      console.warn('⚠️ Nao foi possivel buscar socios:', socioError.message);
-    }
+    const [sociosRows] = await bigquery.query({
+      query: querySocios,
+      location: 'US',
+      params: { cnpjBasico: est.cnpj_basico },
+      types: { cnpjBasico: 'STRING' }
+    });
 
-    const situacaoTexto = formatarSituacao(empresa.situacao_cadastral);
+    const socios = (sociosRows || []).map(s => ({
+      nome: formatarNome(s.nome_socio),
+      qualificacao: s.qualificacao_socio || 'Socio',
+      tipo: s.tipo_socio || null,
+      cpfCnpj: s.cpf_cnpj_socio || null
+    }));
 
     const resultado = {
       found: true,
-      cnpj: formatarCNPJ(cnpjRaw),
-      cnpjRaw,
-      razaoSocial: empresa.razao_social,
-      nomeFantasia: empresa.nome_fantasia || empresa.razao_social,
-      situacao: situacaoTexto,
-      situacaoAtiva: situacaoTexto === 'ATIVA',
-      dataAbertura: empresa.data_inicio_atividade,
-      capitalSocial: parseFloat(empresa.capital_social || 0),
-      capitalSocialFormatado: formatarMoeda(empresa.capital_social),
+      cnpj: formatarCNPJ(est.cnpj),
+      cnpjRaw: est.cnpj,
+      razaoSocial: emp.razao_social || est.nome_fantasia || 'Razao social nao disponivel',
+      nomeFantasia: est.nome_fantasia || emp.razao_social || 'Nome fantasia nao disponivel',
+      situacao: traduzirSituacao(est.situacao_cadastral),
+      situacaoCodigo: est.situacao_cadastral,
+      situacaoAtiva: ['2', '02', 'ATIVA'].includes(String(est.situacao_cadastral).toUpperCase()),
+      dataAbertura: est.data_inicio_atividade || null,
+      capitalSocial: parseFloat(emp.capital_social || 0),
+      capitalSocialFormatado: formatarMoeda(emp.capital_social),
       endereco: {
-        logradouro: [empresa.tipo_logradouro, empresa.logradouro].filter(Boolean).join(' '),
-        numero: empresa.numero,
-        complemento: empresa.complemento,
-        bairro: empresa.bairro,
-        municipio: empresa.municipio,
-        uf: empresa.uf,
-        cep: empresa.cep,
-        completo: montarEnderecoCompleto(empresa),
+        logradouro: [est.tipo_logradouro, est.logradouro].filter(Boolean).join(' '),
+        numero: est.numero || '',
+        complemento: est.complemento || '',
+        bairro: est.bairro || '',
+        municipio: est.id_municipio || '',
+        uf: est.sigla_uf || '',
+        cep: est.cep || '',
+        completo: montarEnderecoCompleto(est)
       },
-      telefone: montarTelefone(empresa.ddd_1, empresa.telefone_1) || montarTelefone(empresa.ddd_2, empresa.telefone_2),
-      email: empresa.email || null,
-      cnae: empresa.cnae_fiscal_principal,
-      socios: socios.map((s) => ({
-        nome: s.nome_socio ? formatarNome(s.nome_socio) : null,
-        qualificacao: s.qualificacao_socio,
-        tipo: s.tipo_socio,
-        cpfCnpj: s.cpf_cnpj_socio,
-      })),
-      socioPrincipal: socios[0]
-        ? {
-            nome: formatarNome(socios[0].nome_socio),
-            qualificacao: socios[0].qualificacao_socio,
-            ehAdministrador: String(socios[0].qualificacao_socio || '')
-              .toLowerCase()
-              .includes('administrador'),
-          }
-        : null,
+      telefone: montarTelefone(est.ddd_1, est.telefone_1) || montarTelefone(est.ddd_2, est.telefone_2),
+      email: est.email || null,
+      cnae: est.cnae_fiscal_principal || null,
+      socios,
+      socioPrincipal: socios[0] || null,
       fonte: 'BigQuery - Base dos Dados',
-      dataConsulta: new Date().toISOString(),
+      dataConsulta: new Date().toISOString()
     };
 
     return res.status(200).json(resultado);
+
   } catch (error) {
-    console.error('❌ Erro ao buscar CNPJ:', error);
+    console.error('Erro ao buscar CNPJ:', error);
     return res.status(500).json({
       error: 'Erro ao consultar BigQuery',
-      message: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      message: error.message
     });
   }
 }
 
-function limparNumeros(valor) {
-  return String(valor || '').replace(/\D/g, '');
-}
+function normalizarTelefone(valor) {
+  let digitos = String(valor || '').replace(/\D/g, '');
 
-function normalizarTelefone(telefone) {
-  let digits = limparNumeros(telefone);
-
-  if (digits.startsWith('55') && digits.length > 11) {
-    digits = digits.slice(2);
+  if (digitos.startsWith('55') && digitos.length > 11) {
+    digitos = digitos.slice(2);
   }
 
-  const telefoneCompleto = digits;
-  const ddd = digits.length >= 10 ? digits.slice(0, 2) : '';
-  const numero = digits.length >= 10 ? digits.slice(2) : digits;
-
-  let telefoneSem9 = telefoneCompleto;
-  let numeroSem9 = numero;
-
-  if (ddd && numero.length === 9 && numero.startsWith('9')) {
-    numeroSem9 = numero.slice(1);
-    telefoneSem9 = ddd + numeroSem9;
+  if (digitos.length < 10) {
+    return { ddd: null, numeros: [] };
   }
 
-  return { telefoneCompleto, ddd, numero, telefoneSem9, numeroSem9 };
+  const ddd = digitos.slice(0, 2);
+  const numero = digitos.slice(2);
+  const variantes = new Set();
+
+  variantes.add(numero);
+
+  if (numero.length === 9 && numero.startsWith('9')) {
+    variantes.add(numero.slice(1));
+  }
+
+  if (numero.length === 8) {
+    variantes.add(numero);
+  }
+
+  variantes.add(numero.replace(/^0+/, ''));
+
+  return {
+    ddd,
+    numeros: Array.from(variantes).filter(n => n && n.length >= 8)
+  };
 }
 
 function formatarCNPJ(cnpj) {
-  const limpo = limparNumeros(cnpj).padStart(14, '0');
+  const limpo = String(cnpj || '').replace(/\D/g, '').padStart(14, '0');
   return limpo.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
 }
 
-function formatarSituacao(situacao) {
-  const texto = String(situacao || '').trim();
-  const mapa = {
-    '1': 'NULA',
-    '2': 'ATIVA',
-    '3': 'SUSPENSA',
-    '4': 'INAPTA',
-    '8': 'BAIXADA',
-  };
-  return mapa[texto] || texto.toUpperCase();
-}
-
 function formatarMoeda(valor) {
-  if (!valor) return 'R$ 0,00';
-  const num = typeof valor === 'string' ? parseFloat(valor.replace(',', '.')) : valor;
-  return 'R$ ' + Number(num || 0).toLocaleString('pt-BR', {
+  const num = parseFloat(valor || 0);
+  return 'R$ ' + num.toLocaleString('pt-BR', {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 2
   });
-}
-
-function montarTelefone(ddd, telefone) {
-  const d = limparNumeros(ddd);
-  const t = limparNumeros(telefone);
-  if (!t) return null;
-  return d ? `(${d}) ${t}` : t;
-}
-
-function montarEnderecoCompleto(empresa) {
-  return [
-    [empresa.tipo_logradouro, empresa.logradouro].filter(Boolean).join(' '),
-    empresa.numero,
-    empresa.complemento,
-    empresa.bairro,
-    [empresa.municipio, empresa.uf].filter(Boolean).join('/'),
-    empresa.cep,
-  ]
-    .filter(Boolean)
-    .join(', ');
 }
 
 function formatarNome(nome) {
@@ -282,9 +284,44 @@ function formatarNome(nome) {
   return String(nome)
     .toLowerCase()
     .split(' ')
-    .map((palavra) => {
+    .filter(Boolean)
+    .map(palavra => {
       if (['de', 'da', 'do', 'dos', 'das', 'e'].includes(palavra)) return palavra;
       return palavra.charAt(0).toUpperCase() + palavra.slice(1);
     })
     .join(' ');
+}
+
+function traduzirSituacao(codigo) {
+  const valor = String(codigo || '').toUpperCase();
+  const mapa = {
+    '1': 'NULA',
+    '01': 'NULA',
+    '2': 'ATIVA',
+    '02': 'ATIVA',
+    '3': 'SUSPENSA',
+    '03': 'SUSPENSA',
+    '4': 'INAPTA',
+    '04': 'INAPTA',
+    '8': 'BAIXADA',
+    '08': 'BAIXADA',
+    'ATIVA': 'ATIVA'
+  };
+  return mapa[valor] || valor || 'NAO INFORMADA';
+}
+
+function montarTelefone(ddd, telefone) {
+  if (!ddd || !telefone) return null;
+  return `(${ddd}) ${telefone}`;
+}
+
+function montarEnderecoCompleto(est) {
+  return [
+    [est.tipo_logradouro, est.logradouro].filter(Boolean).join(' '),
+    est.numero,
+    est.complemento,
+    est.bairro,
+    est.sigla_uf ? `UF: ${est.sigla_uf}` : null,
+    est.cep ? `CEP: ${est.cep}` : null
+  ].filter(Boolean).join(', ');
 }
