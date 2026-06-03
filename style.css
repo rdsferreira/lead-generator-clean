@@ -5,7 +5,6 @@
     box-sizing: border-box;
 }
 
-/* Configuração geral */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -14,13 +13,11 @@ body {
     color: #333;
 }
 
-/* Container principal */
 .container {
     max-width: 800px;
     margin: 0 auto;
 }
 
-/* Cabeçalho */
 .header {
     text-align: center;
     color: white;
@@ -38,7 +35,6 @@ body {
     opacity: 0.9;
 }
 
-/* Card de busca */
 .search-card {
     background: white;
     border-radius: 20px;
@@ -52,7 +48,6 @@ body {
     font-size: 1.8em;
 }
 
-/* Grupos de formulário */
 .form-group {
     margin-bottom: 25px;
 }
@@ -72,7 +67,6 @@ body {
     font-size: 0.9em;
 }
 
-/* Inputs de texto */
 input[type="text"] {
     width: 100%;
     padding: 15px;
@@ -88,7 +82,6 @@ input[type="text"]:focus {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-/* Select */
 select {
     width: 100%;
     padding: 15px;
@@ -105,7 +98,6 @@ select:focus {
     border-color: #667eea;
 }
 
-/* Controle de quantidade (slider) */
 .quantity-control {
     display: flex;
     align-items: center;
@@ -154,38 +146,17 @@ input[type="range"]::-moz-range-thumb {
     text-align: center;
 }
 
-/* Checkboxes */
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.rule-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    color: #065f46;
+    font-size: 0.95em;
+    line-height: 1.5;
 }
 
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 8px;
-    transition: background 0.2s;
-}
-
-.checkbox-label:hover {
-    background: #f5f5f5;
-}
-
-.checkbox-label input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-.checkbox-label span {
-    font-size: 1em;
-}
-
-/* Botão de busca */
 .btn-search {
     width: 100%;
     padding: 18px;
@@ -215,7 +186,6 @@ input[type="range"]::-moz-range-thumb {
     box-shadow: none;
 }
 
-/* Mensagem de status */
 .status-message {
     margin-top: 20px;
     padding: 15px;
@@ -242,7 +212,6 @@ input[type="range"]::-moz-range-thumb {
     border: 2px solid #dc3545;
 }
 
-/* Seção de resultados */
 .results-section {
     background: white;
     border-radius: 20px;
@@ -256,30 +225,28 @@ input[type="range"]::-moz-range-thumb {
     margin-bottom: 20px;
 }
 
-/* Responsivo */
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
-    
+
     .header h1 {
         font-size: 1.8em;
     }
-    
+
     .search-card {
         padding: 25px;
     }
-    
+
     .quantity-control {
         flex-direction: column;
     }
-    
+
     .quantity-display {
         font-size: 2em;
     }
 }
 
-/* Animação de entrada */
 @keyframes fadeIn {
     from {
         opacity: 0;
